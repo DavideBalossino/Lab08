@@ -11,6 +11,7 @@ import java.util.List;
 import it.polito.tdp.extflightdelays.model.Airline;
 import it.polito.tdp.extflightdelays.model.Airport;
 import it.polito.tdp.extflightdelays.model.Flight;
+import it.polito.tdp.extflightdelays.model.MediaVoli;
 
 public class ExtFlightDelaysDAO {
 
@@ -89,6 +90,29 @@ public class ExtFlightDelaysDAO {
 			e.printStackTrace();
 			System.out.println("Errore connessione al database");
 			throw new RuntimeException("Error Connection Database");
+		}
+	}
+	
+	
+	public List<MediaVoli> aggiungiVertici(Integer media) {
+		String sql="SELECT f1.ORIGIN_AIRPORT_ID,f1.DESTINATION_AIRPORT_ID, AVG (f1.DISTANCE) AS Media "
+				+ "FROM flights AS f1 "
+				+ "GROUP BY f1.ORIGIN_AIRPORT_ID, f1.DESTINATION_AIRPORT_ID "
+				+ "HAVING AVG (f1.DISTANCE)>=?";
+		List<MediaVoli> result=new ArrayList<>();
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, media);
+			ResultSet rs = st.executeQuery();
+			while(rs.next()) {
+				MediaVoli m=new MediaVoli(rs.getInt("ORIGIN_AIRPORT_ID"),rs.getInt("DESTINATION_AIRPORT_ID"),rs.getDouble("Media"));
+				result.add(m);
+			}
+			conn.close();
+			return result;
+		} catch(SQLException e) {
+			throw new RuntimeException(e);
 		}
 	}
 }
